@@ -1,0 +1,83 @@
+{
+  "_readme": "v2. Decided by design owner's brief: plays like Sister Location (nights, scripted facility, animatronic AI) with multiplayer, but the player keeps ALL of Minecraft: every item, crafting, inventory/menus, creative AND survival. Remaining null = must be measured/verified in the build. Unbuilt and untested.",
+
+  "games": [
+    {"id": "mc", "slug": "minecraft-java", "role": "primary", "loader": "fabric", "version": null},
+    {"id": "sl", "slug": null, "role": "secondary", "note": "Not in Melty catalog. Mod finds the Steam install, reads art/sound at runtime, shows an in-game message if missing. Nothing from SL is shipped. No look-alikes.", "version": null}
+  ],
+
+  "world_modes": [
+    {"id": "survival_nights", "gamemode": "survival", "stakes": "real: caught = eliminated for the night, items kept (no loss)", "hunger": true, "crafting": true, "all_items": true, "menus": "vanilla, all available", "default": true},
+    {"id": "creative_nights", "gamemode": "creative", "stakes": "caught = respawn at elevator, no elimination", "all_items": true, "menus": "vanilla creative inventory", "flight": "disabled during active night, enabled in lobby/builder"},
+    {"id": "builder_lobby", "gamemode": "creative", "stakes": "none", "note": "between nights: build defenses, decorate, test animatronics non-lethal"}
+  ],
+
+  "minecraft_integration_rules": [
+    {"id": "inventory", "rule": "Full vanilla inventory, crafting, chests, furnaces, enchanting, brewing stay usable in the facility."},
+    {"id": "building", "rule": "Players can place/break blocks inside the facility except protected 'set' blocks (walls, floors of SL rooms, doors' frames) so rooms stay intact each night. Placed blocks reset between nights unless the host enables Persistent mode."},
+    {"id": "items_as_tools", "rule": "Vanilla items interact with the mashup: torches/lamps ward off Funtime Foxy rushes, doors/trapdoors/iron bars slow animatronics, noteblocks/jukebox lure Ballora, redstone powers Primary Control tasks, shields block one grab."},
+    {"id": "mobs", "rule": "Vanilla hostile mobs disabled inside the facility dimension (mod animatronics are the threat); normal in overworld."},
+    {"id": "dimensions", "rule": "Overworld, Nether and End remain playable; the facility is an added dimension reached via the lobby elevator."},
+    {"id": "commands_menus", "rule": "Vanilla pause menu, advancements, chat, commands (for ops) unchanged."}
+  ],
+
+  "roles": [
+    {"id": "guard", "name": "Night Guard", "health": 20, "speed": 1.0, "flashlight": true, "can_hide": true, "slot_limit": null, "win": "per night goal"},
+    {"id": "animatronic", "name": "Animatronic", "health": 40, "speed": 1.05, "pick_from": "animatronics where playable=true", "slot_limit": 1, "abilities": "one signature ability on a 20s cooldown; cannot break protected blocks; vents open to it", "win": "catch every guard before the night goal is met"}
+  ],
+
+  "animatronics": [
+    {"id": "baby", "name": "Circus Baby", "playable": true, "ai_type": "lure_and_grab", "speed": 1.0, "ability": "voice lure draws guards to a chosen room, then grab", "first_night": 1, "rooms": ["circus_gallery", "elevator"], "sl_audio": null, "sl_art": null},
+    {"id": "ballora", "name": "Ballora", "playable": true, "ai_type": "sound_hunter", "speed": 1.0, "ability": "hunts footsteps/noise (blocks placed, chests, jukebox); standing still and sneaking hides you", "first_night": 2, "rooms": ["funtime_auditorium"], "sl_audio": null, "sl_art": null},
+    {"id": "ffreddy", "name": "Funtime Freddy", "playable": true, "ai_type": "patrol_and_ambush", "speed": 0.95, "ability": "ambush from stage room; stuffs one guard into the suit (one-hit)", "first_night": 3, "rooms": ["funtime_auditorium"], "sl_audio": null, "sl_art": null},
+    {"id": "ffoxy", "name": "Funtime Foxy", "playable": true, "ai_type": "light_triggered_rush", "speed": 1.3, "ability": "rushes through dark rooms; light blocks it", "first_night": 3, "rooms": ["parts_and_service"], "sl_audio": null, "sl_art": null},
+    {"id": "ennard", "name": "Ennard", "playable": false, "ai_type": "boss_final_night", "speed": 1.1, "ability": "roams every room on night 5; ignores doors (needs iron blocks to stall)", "first_night": 5, "rooms": ["all"], "sl_audio": null, "sl_art": null},
+    {"id": "bidybab", "name": "Bidybabs", "playable": false, "ai_type": "swarm_minion", "speed": 0.8, "ability": "slow + nibble; killed in 2 hits", "first_night": 2, "rooms": ["vents"], "sl_audio": null, "sl_art": null}
+  ],
+
+  "rooms": [
+    {"id": "elevator", "name": "Elevator / Lobby", "size_xyz": [15, 8, 15], "role": "lobby_and_dropin", "spawn_points": 8},
+    {"id": "primary_control", "name": "Primary Control", "size_xyz": [30, 10, 30], "role": "task_goal", "tasks": ["restore_power", "reroute_cables", "reset_breaker"]},
+    {"id": "circus_gallery", "name": "Circus Gallery", "size_xyz": [40, 12, 25], "role": "patrol_room"},
+    {"id": "funtime_auditorium", "name": "Funtime Auditorium", "size_xyz": [40, 14, 40], "role": "patrol_room"},
+    {"id": "parts_and_service", "name": "Parts and Service", "size_xyz": [30, 10, 30], "role": "patrol_room"},
+    {"id": "vents", "name": "Vent network", "size_xyz": [60, 3, 60], "role": "connector"}
+  ],
+
+  "nights": [
+    {"id": "n1", "type": "survive_timer", "duration_min": 8, "animatronics": ["baby"], "rooms": ["elevator", "circus_gallery"], "difficulty": 1},
+    {"id": "n2", "type": "survive_timer", "duration_min": 10, "animatronics": ["baby", "ballora", "bidybab"], "rooms": ["elevator", "circus_gallery", "funtime_auditorium", "vents"], "difficulty": 2},
+    {"id": "n3", "type": "tasks", "tasks_required": 3, "animatronics": ["ballora", "ffreddy", "ffoxy"], "rooms": ["primary_control", "funtime_auditorium", "parts_and_service"], "difficulty": 3},
+    {"id": "n4", "type": "tasks", "tasks_required": 5, "animatronics": ["baby", "ffreddy", "ffoxy", "bidybab"], "rooms": ["primary_control", "parts_and_service", "vents"], "difficulty": 4},
+    {"id": "n5", "type": "endless", "scaling": "difficulty +1 every 3 minutes, Ennard from minute 1", "animatronics": ["all"], "rooms": ["all"], "difficulty": 5, "winner_rule": "score = time survived; no fixed end"}
+  ],
+
+  "systems": [
+    {"id": "lobby", "hook": "server join event", "needs": ["roles", "elevator"], "done": false},
+    {"id": "role_select", "hook": "UI screen + server packet", "needs": ["roles"], "done": false},
+    {"id": "world_mode_select", "hook": "host setting at world start", "needs": ["world_modes"], "done": false},
+    {"id": "night_director", "hook": "server tick", "needs": ["nights", "animatronics"], "done": false},
+    {"id": "animatronic_ai", "hook": "entity goals", "needs": ["animatronics"], "done": false},
+    {"id": "player_animatronic_control", "hook": "player model swap + ability keybind", "needs": ["animatronics.playable", "roles.animatronic"], "done": false},
+    {"id": "sl_asset_loader", "hook": "resource reload", "needs": ["games.sl"], "done": false},
+    {"id": "dimension", "hook": "custom dimension + generator", "needs": ["rooms"], "done": false},
+    {"id": "protected_blocks", "hook": "block break/place events", "needs": ["minecraft_integration_rules.building"], "done": false},
+    {"id": "item_interactions", "hook": "item/block events", "needs": ["minecraft_integration_rules.items_as_tools"], "done": false},
+    {"id": "player_list", "hook": "per game_info for minecraft-java", "needs": ["roles"], "done": false}
+  ],
+
+  "multiplayer": {
+    "max_players": 8,
+    "max_players_note": "design target: 1 animatronic + up to 7 guards; confirm under load in two-instance testing",
+    "connect": {"address_log": null, "address_after": "Hosting at ", "join_method": null, "relay": null},
+    "tested_two_instances": false,
+    "note": "Needs a relay/lobby Melty accepts. Do not mark multiplayer-connect until hosting and joining were tested with two running copies."
+  },
+
+  "listing": {
+    "title": "Fazbear Facility: Sister Location in Minecraft",
+    "tagline": "Survive five nights in a Sister Location facility, with all of Minecraft in your hands.",
+    "description": "DRAFT, unbuilt. Pick night guard or animatronic in the lobby, drop into a Sister Location facility, and survive timers, task nights and an endless night, solo or with friends. Keep full Minecraft: crafting, items, menus, creative and survival. Requires Minecraft Java and your own copy of Five Nights at Freddy's: Sister Location.",
+    "credits": null, "license": null, "remix_allowed": null, "screenshot": null
+  }
+}
